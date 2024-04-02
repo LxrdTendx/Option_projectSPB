@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Опционная серия</title>
+</head>
+<body>
+    <h1>Ввод данных для опционной серии</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Отобразить</button>
+    </form>
+</body>
+</html>
