@@ -1,74 +1,53 @@
-from django.shortcuts import render
-from django.shortcuts import render
-from .forms import OptionSeriesForm
-from . import theoretical_prices
+import matplotlib
+matplotlib.use('Agg')  # Установка бэкенда
 import matplotlib.pyplot as plt
-import io
-import urllib, base64
-import matplotlib.pyplot as plt
+import numpy as np
+import math
+import scipy.stats as sts
+from numpy.polynomial import Polynomial as P
 import io
 import base64
-from . import theoretical_prices
-from . import option_pricing
-import numpy as np
+from django.shortcuts import render
+from .forms import OptionSeriesForm
+from . import theoretical_prices as tp
 
+norm_rv = sts.norm(loc=0, scale=1)
 
-def plot_graph(data):
+def create_plot(central_strike, poly):
+    spot_price = 190
+    opt_type = 'c'
+    x = np.arange(spot_price - 100, spot_price + 100, 1)
+    R = 22.955656465450307
+    theor = tp.TheorPrice(opt_type, spot_price, x, R, poly)
+    iv = [max(spot_price - strike if opt_type == 'c' else strike - spot_price, 0) for strike in x]
+    m = theor - iv
+
     plt.figure()
-    plt.plot(data)
+    plt.plot(x, iv, label='Intrinsic Value')
+    plt.plot(x, theor, label='Theoretical Price')
+    plt.plot(x, m, label='Market Price')
+    plt.grid(True)
+    plt.legend(loc='best')
+    plt.title(f'Spot Price={spot_price}, Option Type={opt_type}, Poly={poly}')
+    plt.xlabel('Strike')
+    plt.ylabel('Price')
+
     buf = io.BytesIO()
-    plt.savefig(buf, format='png')
+    plt.savefig(buf, format='png', dpi=100)
+    plt.close()
     buf.seek(0)
-    string = base64.b64encode(buf.read())
-    uri = urllib.parse.quote(string)
-    return uri
+    image_png = buf.getvalue()
+    buf.close()
 
+    return base64.b64encode(image_png).decode('utf-8')
 
+def index(request):
+    form = OptionSeriesForm(request.POST or None)
+    data = None
+    if request.method == 'POST' and form.is_valid():
+        central_strike = form.cleaned_data['central_strike']
+        polynomial_coefficients = form.cleaned_data['polynomial_coefficients']
+        poly = P([float(x) for x in polynomial_coefficients.split(',')])
+        data = create_plot(central_strike, poly)
 
-
-def option_series_view(request):
-    if request.method == 'POST':
-        form = OptionSeriesForm(request.POST)
-        if form.is_valid():
-            central_strike = form.cleaned_data['central_strike']
-            strikes_count = form.cleaned_data['strikes_count']
-            strike_step = form.cleaned_data['strike_step']
-            # Выполните необходимые расчеты и генерацию графика
-            # Предположим, что функция generate_graph возвращает URL сгенерированного изображения
-            graph_url = generate_graph(central_strike, strikes_count, strike_step)
-            return render(request, 'results.html', {'form': form, 'graph_url': graph_url})
-    else:
-        form = OptionSeriesForm()
-    return render(request, 'index.html', {'form': form})
-
-
-
-def generate_graph(central_strike, strikes_count, strike_step, opt_type='c', spot_price=10000):
-    # Инициализация входных данных для расчета
-    strikes = np.linspace(central_strike - strike_step * strikes_count, central_strike + strike_step * strikes_count,
-                          2 * strikes_count + 1)
-    premiums = option_pricing.BlackSholes(opt_type, spot_price, strikes, 0.5, 0.05,
-                                          0.2)  # Пример использования BlackSholes для генерации премий
-
-    # Используем функции из кода для расчета теоретических цен
-    r = theoretical_prices.CalcR_v2(opt_type, strikes, premiums, spot_price)
-    _, _, poly, _ = theoretical_prices.CalcTheorParams2(opt_type, strikes, premiums, spot_price, r)
-
-    # Генерация данных для графика
-    values = theoretical_prices.TheorPrice(opt_type, spot_price, strikes, r, poly)
-    values = np.real(values)
-    print("Values:", values)
-    # Построение графика
-    plt.figure()
-    plt.plot(strikes, values, label='Theoretical Price')
-    plt.scatter(strikes, premiums, color='red', label='Market Price')  # Демонстрация рыночных цен для сравнения
-    plt.legend()
-    plt.xlabel('Strike Price')
-    plt.ylabel('Option Price')
-
-    # Сохранение и возвращение изображения
-    buf = io.BytesIO()
-    plt.savefig(buf, format='png')
-    buf.seek(0)
-    image_url = "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode()
-    return image_url
+    return render(request, 'index.html', {'form': form, 'data': data})

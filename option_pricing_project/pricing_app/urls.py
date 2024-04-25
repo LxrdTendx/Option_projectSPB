@@ -1,6 +1,7 @@
 from django.urls import path
-from . import views
+from .views import index # Убедитесь, что имена совпадают с определенными в views.py
 
 urlpatterns = [
-    path('', views.option_series_view, name='option_series_view'),
+    path('', index, name='index'),  # обработка главной страницы
+    # path('result/', result, name='result'),  # обработка результатов формы
 ]
