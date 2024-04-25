@@ -19,5 +19,7 @@ from django.urls import include, path
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('pricing/', include('pricing_app.urls')),  # Подключение URL-конфигураций приложения
+    path('', include('pricing_app.urls')),  # Подключение URL-конфигураций приложения
+
+
 ]
