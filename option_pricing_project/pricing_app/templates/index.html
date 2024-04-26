@@ -5,14 +5,47 @@
 </head>
 <body>
     <h1>Ввод данных для опционной серии</h1>
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Отобразить</button>
+        {% if not options_form %}
+            {{ file_form.as_p }}
+            <button type="submit" name="upload">Загрузить файл</button>
+        {% else %}
+            {{ options_form.as_p }}
+            <button type="submit" name="select_option">Построить график</button>
+            <div id="details"></div>
+        {% endif %}
     </form>
-    {% if data %}
-    <h2>График:</h2>
-    <img src="data:image/png;base64,{{ data }}" alt="Graph">
+    {% if graph_data %}
+    <div style="margin-top: 20px;">
+        <h2>График:</h2>
+        <img src="data:image/png;base64,{{ graph_data }}" alt="Graph">
+    </div>
     {% endif %}
 </body>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const optionSelect = document.getElementById('id_option_id');
+    optionSelect.addEventListener('change', function() {
+        const selectedId = this.value;
+        fetch(`/get-option-data/${selectedId}/`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('id_strike_step').value = data.step;
+                document.getElementById('id_cnt').value = data.count;
+                document.getElementById('details').innerHTML = `
+                    <p>Spot Price: ${data.spot_price}</p>
+                    <p>Type: ${data.type}</p>
+                    <p>Polynomial Coefficients: ${data.coef}</p>
+                    <p>R: ${data.r}</p>
+                    <p>External Strikes: ${data.external_strikes.join(', ')}</p>
+                    <p>Count: ${data.count}</p>
+                    <p>Step: ${data.step}</p>
+                `;
+            })
+            .catch(error => console.error('Error fetching data:', error));
+    });
+});
+</script>
+
 </html>

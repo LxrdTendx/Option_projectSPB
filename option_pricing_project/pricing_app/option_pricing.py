@@ -38,7 +38,7 @@ def BlackSholes(callPutFlag, spot_price, strike, t, r, v, min_premium=0.01):
         v * math.sqrt(t)
     )
     d2 = d1 - v * math.sqrt(t)
-    if callPutFlag == "c":
+    if callPutFlag == "Call":
         price = spot_price * N(d1) - strike * math.exp(-r * t) * N(d2)
     else:
         price = strike * math.exp(-r * t) * N(-d2) - spot_price * N(-d1)
@@ -49,7 +49,7 @@ def Bachelier(callPutFlag, spot_price, strike, t, r, v, min_premium=0.01):
     """цена опциона на акцию по Башелье"""
     sqrt = math.sqrt(t)
     d1 = (spot_price - strike) / (v * sqrt)
-    if callPutFlag == "c":
+    if callPutFlag == "Call":
         price = (
             spot_price * N(d1) - strike * math.exp(-r * t) * N(d1) + v * sqrt * n(d1)
         )

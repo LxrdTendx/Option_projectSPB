@@ -95,7 +95,7 @@ def CalcTheorParams2(
     """
 
     xs = (strikes - spot_price) / r
-    if opt_type == "c":
+    if opt_type == "Call":
         z = 1 - op.N(xs)
     else:
         z = -op.N(xs)
@@ -121,7 +121,7 @@ def CalcTheorParams3(
     # проверка по размерности. допустим, что страйки и премии - это массивы длины N
     xs = (strikes - spot_price) / r  # N
     z = -op.N(xs)  # N
-    if opt_type == "c":
+    if opt_type == "Call":
         z += 1  # N
     bs = premium / r + xs * z  # N
     aos = np.vander(xs, N=degree+1, increasing=True)  # N*M M=degree+1
@@ -149,7 +149,7 @@ def CalcTheorParams2Degree(
        Эта версия принудительно cnfdbn b0 в единицу.
     """
     xs = (strikes - spot_price) / r
-    if opt_type == "c":
+    if opt_type == "Call":
         z = 1 - op.N(xs)
     else:
         z = -op.N(xs)
@@ -220,7 +220,7 @@ def TheorPrice(opt_type, spot_price, strike, r, poly):
     в strike можно передавать и число и массив"""
     moneyless = strike - spot_price
     x = moneyless / r
-    return r * op.n(x) * poly(x) + moneyless * (op.N(x) - (1 if opt_type == "c" else 0))
+    return r * op.n(x) * poly(x) + moneyless * (op.N(x) - (1 if opt_type == "Call" else 0))
 
 
 approx_dict = {'poly': CalcTheorParams2, 'poly1': CalcTheorParams2Degree, 'hermit': CalcTheorParams2DegreeH2, 'linal': CalcTheorParams3}
