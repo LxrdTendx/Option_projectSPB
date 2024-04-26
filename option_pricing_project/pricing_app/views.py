@@ -67,7 +67,7 @@ def create_plot(strike_step, cnt, spot_price, opt_type, coef, r, external_strike
     plt.axvline(x=spot_price, color='red')
     plt.xticks(np.unique(np.concatenate((external_strikes, x))),
                rotation=90)  # Adjusting tick locations and adding rotation for clarity
-    plt.title(f'Spot Price={spot_price}, Option Type={opt_type}, Polynomial={poly}')
+    # plt.title(f'Spot Price={spot_price}, Option Type={opt_type}, Polynomial={poly}')
 
     buf = io.BytesIO()
     plt.savefig(buf, format='png', dpi=100)

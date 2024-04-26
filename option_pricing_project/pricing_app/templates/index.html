@@ -5,7 +5,8 @@
 </head>
 <body>
     <h1>Ввод данных для опционной серии</h1>
-    <form method="post" enctype="multipart/form-data">
+    <div style="display: flex">
+       <form style="width: 50%" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {% if not options_form %}
             {{ file_form.as_p }}
@@ -17,17 +18,21 @@
         {% endif %}
     </form>
     {% if graph_data %}
-    <div style="margin-top: 20px;">
-        <h2>График:</h2>
+    <div>
         <img src="data:image/png;base64,{{ graph_data }}" alt="Graph">
     </div>
     {% endif %}
+    </div>
+
+
 </body>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const optionSelect = document.getElementById('id_option_id');
-    optionSelect.addEventListener('change', function() {
-        const selectedId = this.value;
+    const fetchData = () => {
+        const selectedId = optionSelect.value;
+        if (!selectedId) return; // Если ID не выбран, прервать функцию
+
         fetch(`/get-option-data/${selectedId}/`)
             .then(response => response.json())
             .then(data => {
@@ -44,8 +49,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 `;
             })
             .catch(error => console.error('Error fetching data:', error));
-    });
+    };
+
+    optionSelect.addEventListener('change', fetchData);
+    fetchData(); // Вызов функции при загрузке страницы для текущего выбранного значения
 });
 </script>
+
 
 </html>
