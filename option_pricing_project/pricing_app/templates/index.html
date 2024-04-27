@@ -30,7 +30,10 @@
 </body>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.3.1"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.1.1"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/1.0.0/chartjs-plugin-zoom.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-adapter-moment/1.0.0/chartjs-adapter-moment.min.js"></script>
 
 
 <script>
@@ -73,10 +76,10 @@ document.addEventListener('DOMContentLoaded', function() {
         data: chartData,
         options: {
             scales: {
-                y: {  // настройки оси Y
+                y: {  // Настройки оси Y
                     beginAtZero: true
                 },
-                x: {  // настройки оси X
+                x: {  // Настройки оси X
                     type: 'linear',
                     position: 'bottom'
                 }
@@ -91,13 +94,12 @@ document.addEventListener('DOMContentLoaded', function() {
                             enabled: true, // Включение зума колесом мыши
                         },
                         pinch: {
-                            enabled: true // Включение зума щипком (для сенсорных устройств)
+                            enabled: true, // Включение зума щипком (для сенсорных устройств)
                         },
                         mode: 'xy' // Включение зума по обеим осям
                     },
                     pan: {
                         enabled: true, // Включение панорамирования
-                        mode: 'xy' // Панорамирование по обеим осям
                     }
                 }
             }
