@@ -33,6 +33,9 @@ def get_option_data(request, id):
     else:
         return JsonResponse({'error': 'Option not found'}, status=404)
 
+
+
+
 def create_plot(strike_step, cnt, spot_price, opt_type, coef, r, external_strikes):
 
     # spot_price = 16
@@ -76,6 +79,8 @@ def create_plot(strike_step, cnt, spot_price, opt_type, coef, r, external_strike
     image_png = buf.getvalue()
     buf.close()
 
+    max_iv = max(iv)
+
     all_x_values = np.unique(np.concatenate((external_strikes, x)))
 
     # Подготовка данных для Chart.js
@@ -113,7 +118,8 @@ def create_plot(strike_step, cnt, spot_price, opt_type, coef, r, external_strike
             'value': spot_price + i * strike_step,
             'borderColor': 'red',
             'borderWidth': 2,
-            'borderDash': [6, 6]  # пунктирная линия
+            'borderDash': [6, 6],  # пунктирная линия
+
         })
         annotations.append({
             'type': 'line',
@@ -122,7 +128,8 @@ def create_plot(strike_step, cnt, spot_price, opt_type, coef, r, external_strike
             'value': spot_price - i * strike_step,
             'borderColor': 'red',
             'borderWidth': 2,
-            'borderDash': [6, 6]  # пунктирная линия
+            'borderDash': [6, 6],  # пунктирная линия
+
         })
 
     # Добавление закрашивания
@@ -143,15 +150,38 @@ def create_plot(strike_step, cnt, spot_price, opt_type, coef, r, external_strike
         'borderColor': 'red',
         'borderWidth': 2
     })
-    for strike in external_strikes:
-        annotations.append({
-            'type': 'line',
-            'scaleID': 'x',
-            'value': strike,
-            'borderColor': 'black',  # Или любой другой цвет для различия
-            'borderWidth': 1,
-            'borderDash': [5, 5]  # Пунктирная линия для отличия
-        })
+
+    # Добавление линий external_strikes как датасетов
+
+    external_strikes_dataset = {
+        'label': 'External Strikes',
+        'data': [{'x': strike, 'y': int(max_iv), 'base': -1} for strike in external_strikes],
+        # y должно быть не нулевым, чтобы столбцы отображались
+        'type': 'bar',  # Указываем, что это столбчатая диаграмма
+        'borderColor': 'black',
+        'borderWidth': 1,
+        'backgroundColor': 'black',  # Прозрачный фон
+        'barPercentage': 0.2,  # Устанавливаем ширину столбца
+        'categoryPercentage': 1.0  # Полная ширина категории
+    }
+
+    # Добавляем этот датасет к остальным датасетам
+    chart_data['datasets'].append(external_strikes_dataset)
+
+    # for strike in external_strikes:
+    #     annotations.append({
+    #         'type': 'line',
+    #         'scaleID': 'x',
+    #         'value': strike,
+    #         'borderColor': 'black',  # Используйте другой цвет для различия
+    #         'borderWidth': 1,
+    #         'borderDash': [5, 5],
+    #         # 'label': {
+    #         #     'enabled': True,
+    #         #     'content': f'{strike}',
+    #         #     'position': 'top'
+    #         # }
+    #     })
 
 
 
