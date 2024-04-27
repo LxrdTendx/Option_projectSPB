@@ -1,33 +1,153 @@
-<!DOCTYPE html>
+{% load static %}
+{% block content %}
+<style>
+    body{
+        margin:0;
+        padding: 0;
+    }
+    h1{
+        font-family: "Grtsk Tera", sans-serif;
+        font-weight: 800;
+        font-size: 48px;
+        line-height: 100%;
+        color: #2a2a28;
+        margin-left: 130px
+    }
+    p{
+        font-family: "Suisse Intl", sans-serif;
+        font-weight: 500;
+        font-size: 18px;
+        line-height: 140%;
+        color: #aaa;
+        display: flex;
+        justify-content: space-between;
+        width: 56%;
+    }
+    #id_strike_step, #id_cnt{
+        width: 107px;
+        font-family: "Suisse Intl", sans-serif;
+        font-weight: 500;
+        font-size: 18px;
+        line-height: 140%;
+        text-align: right;
+        color: #000;
+        border: none;
+    }
+    #id_option_id{
+        width: 250px;
+        height: 40px;
+        font-family: "Suisse Intl", sans-serif;
+        font-weight: 600;
+        font-size: 18px;
+        line-height: 140%;
+        color: #000;
+    }
+    #details{
+        margin-top: 30px;
+    }
+
+    th, td {
+        border: 1px solid #AAAAAA;
+        padding: 8px;
+        text-align: left;
+    }
+    tr{
+        width: 457px;
+        height: 71px;
+    }
+    td{
+        font-family: "Suisse Intl", sans-serif;
+        font-weight: 500;
+        font-size: 16px;
+        line-height: 120%;
+        color: #0d0d0d;
+    }
+    th {
+        font-family: "Suisse Intl", sans-serif;
+        font-weight: 600;
+        font-size: 16px;
+        line-height: 140%;
+        color: #000;
+        background-color: #e2e2e2;
+    }
+    .data{
+        margin-top: 63px;
+        width: 216px;
+        height: 32px;
+        font-family: "Suisse Intl", sans-serif;
+        font-weight: 600;
+        font-size: 20px;
+        line-height: 140%;
+        color: #000;
+    }
+
+    /* Стилизация первой строки заголовков для скругления углов */
+    .table_block tr:first-child th:first-child {
+        border-top-left-radius: 8px;
+    }
+    .table_block tr:first-child th:last-child {
+        border-top-right-radius: 8px;
+    }
+     .data {
+        position: relative; /* Для позиционирования псевдоэлемента */
+        /* Остальные стили для .data */
+    }
+
+    .data::after {
+        content: ''; /* Псевдоэлементы требуют свойства content */
+        display: block; /* Делает элемент блочным, чтобы он занял всю ширину */
+        margin-top: 4px; /* Расстояние от текста до линии */
+        height: 3px; /* Высота линии */
+        background-color: #ff8261; /* Цвет линии */
+    }
+    #select_option{
+        cursor: pointer;
+        font-family: "Suisse Intl", sans-serif;
+        font-weight: 600;
+        font-size: 18px;
+        line-height: 133%;
+        color: #000;
+        border-radius: 4px;
+        border: 0;
+        padding: 8px 16px;
+        width: 233px;
+        height: 40px;
+        background: #ff8261;
+    }
+</style>
+<div style="width: 100%; height: 50px; background: #e2e2e2; display: flex; align-items: center; justify-content: center;">
+    <img src="{% static 'logo.svg' %}" alt="Логотип" style="margin-left: 0;margin-right: auto;">
+</div>
 <html>
-<head>
-    <title>Опционная серия</title>
-</head>
-<body>
-    <h1>Ввод данных для опционной серии</h1>
-    <div style="display: flex">
-       <form style="width: 50%" method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {% if not options_form %}
-            {{ file_form.as_p }}
-            <button type="submit" name="upload">Загрузить файл</button>
-        {% else %}
-            {{ options_form.as_p }}
-            <button type="submit" name="select_option">Построить график</button>
-            <div id="details"></div>
+
+    <head>
+        <title>Опционная серия</title>
+    </head>
+    <body>
+        <h1>Визуализатор для создания опционов</h1>
+        <div style="display: flex; margin-left: 130px">
+           <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {% if not options_form %}
+                {{ file_form.as_p }}
+                <button type="submit" name="upload">Загрузить файл</button>
+            {% else %}
+                {{ options_form.as_p }}
+                <button id="select_option" type="submit" name="select_option">Построить график</button>
+                <div class="data">Загруженные данные</div>
+                <div id="details"></div>
+            {% endif %}
+        </form>
+        {% if graph_data %}
+        <div>
+            <div class="data" style="width: 75px">График</div>
+    <!--        <img src="data:image/png;base64,{{ graph_data }}" alt="Graph">-->
+            <canvas id="myChart" width="600px" height="500"></canvas>
+        </div>
+
         {% endif %}
-    </form>
-    {% if graph_data %}
-    <div>
-<!--        <img src="data:image/png;base64,{{ graph_data }}" alt="Graph">-->
-        <canvas id="myChart" width="800" height="500"></canvas>
-    </div>
-
-    {% endif %}
-    </div>
-
-
-</body>
+        </div>
+    </body>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.3.1"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
@@ -73,14 +193,34 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     const updateDetails = (data) => {
-        document.getElementById('details').innerHTML = `
-            <p>Spot Price: ${data.spot_price}</p>
-            <p>Type: ${data.type}</p>
-            <p>Polynomial Coefficients: ${data.coef}</p>
-            <p>R: ${data.r}</p>
-            <p>External Strikes: ${data.external_strikes.join(', ')}</p>
-            <p>Count: ${countInput.value}</p>
-            <p>Step: ${stepInput.value}</p>
+        const details = document.getElementById('details');
+        details.innerHTML = `
+            <table class="table_block" style="width: 680px; height: 372px;">
+                 <tr>
+                    <th class="table-header">Поле</th>
+                    <th class="table-header">Значение</th>
+                </tr>
+                <tr>
+                    <td>Центральный страйк</td>
+                    <td>${data.spot_price}</td>
+                </tr>
+                <tr>
+                    <td>Тип опциона</td>
+                    <td>${data.type}</td>
+                </tr>
+                <tr>
+                    <td>Коэффициенты полинома</td>
+                    <td>${data.coef.join(', ')}</td>
+                </tr>
+                <tr>
+                    <td>R</td>
+                    <td>${data.r}</td>
+                </tr>
+                <tr>
+                    <td>Внешние страйки</td>
+                    <td>${data.external_strikes.join(', ')}</td>
+                </tr>
+            </table>
         `;
     };
 
@@ -141,6 +281,5 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+{% endblock %}
 
-
-</html>

@@ -88,21 +88,24 @@ def create_plot(strike_step, cnt, spot_price, opt_type, coef, r, external_strike
         'labels': [float(x) for x in x],  # Преобразуем значения NumPy в float
         'datasets': [
             {
-                'label': 'Intrinsic Value',
+                'label': 'внутренняя цена (iv)',
                 'data': [float(value) for value in iv],  # Преобразование данных NumPy в список float
-                'borderColor': 'blue',
+                'borderColor': '#ff8261',
+                'backgroundColor':'#ff8261',
                 'fill': False,
             },
             {
-                'label': 'Theoretical Price',
+                'label': 'теоретическая цена (theor)',
                 'data': [float(value) for value in theor],  # Аналогично
-                'borderColor': 'orange',
+                'borderColor': 'black',
+                'backgroundColor':'black',
                 'fill': False,
             },
             {
-                'label': 'M',
+                'label': 'm (theor - iv)',
                 'data': [float(value) for value in m],  # Аналогично
-                'borderColor': 'green',
+                'borderColor': '#aaa',
+                'backgroundColor':'#aaa',
                 'fill': False,
             }
         ]
@@ -153,35 +156,35 @@ def create_plot(strike_step, cnt, spot_price, opt_type, coef, r, external_strike
 
     # Добавление линий external_strikes как датасетов
 
-    external_strikes_dataset = {
-        'label': 'External Strikes',
-        'data': [{'x': strike, 'y': int(max_iv), 'base': -1} for strike in external_strikes],
-        # y должно быть не нулевым, чтобы столбцы отображались
-        'type': 'bar',  # Указываем, что это столбчатая диаграмма
-        'borderColor': 'black',
-        'borderWidth': 1,
-        'backgroundColor': 'black',  # Прозрачный фон
-        'barPercentage': 0.2,  # Устанавливаем ширину столбца
-        'categoryPercentage': 1.0  # Полная ширина категории
-    }
+    # external_strikes_dataset = {
+    #     'label': 'External Strikes',
+    #     'data': [{'x': strike, 'y': int(max_iv), 'base': -1} for strike in external_strikes],
+    #     # y должно быть не нулевым, чтобы столбцы отображались
+    #     'type': 'bar',  # Указываем, что это столбчатая диаграмма
+    #     'borderColor': 'black',
+    #     'borderWidth': 1,
+    #     'backgroundColor': 'black',  # Прозрачный фон
+    #     'barPercentage': 0.2,  # Устанавливаем ширину столбца
+    #     'categoryPercentage': 1.0  # Полная ширина категории
+    # }
 
     # Добавляем этот датасет к остальным датасетам
-    chart_data['datasets'].append(external_strikes_dataset)
+    # chart_data['datasets'].append(external_strikes_dataset)
 
-    # for strike in external_strikes:
-    #     annotations.append({
-    #         'type': 'line',
-    #         'scaleID': 'x',
-    #         'value': strike,
-    #         'borderColor': 'black',  # Используйте другой цвет для различия
-    #         'borderWidth': 1,
-    #         'borderDash': [5, 5],
-    #         # 'label': {
-    #         #     'enabled': True,
-    #         #     'content': f'{strike}',
-    #         #     'position': 'top'
-    #         # }
-    #     })
+    for strike in external_strikes:
+        annotations.append({
+            'type': 'line',
+            'scaleID': 'x',
+            'value': strike,
+            'borderColor': 'black',  # Используйте другой цвет для различия
+            'borderWidth': 1,
+            'borderDash': [5, 5],
+            # 'label': {
+            #     'enabled': True,
+            #     'content': f'{strike}',
+            #     'position': 'top'
+            # }
+        })
 
 
 

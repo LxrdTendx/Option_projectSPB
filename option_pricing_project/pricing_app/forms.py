@@ -1,12 +1,12 @@
 from django import forms
 
 class FileUploadForm(forms.Form):
-    json_file = forms.FileField(label='Загрузите JSON файл')
+    json_file = forms.FileField(label='')
 
 class OptionSelectionForm(forms.Form):
-    option_id = forms.ChoiceField(label='Выберите опцион', choices=[])
-    cnt = forms.IntegerField(label='Количество', required=False)
-    strike_step = forms.FloatField(label='Шаг страйка', required=False)
+    option_id = forms.ChoiceField(label='', choices=[])
+    strike_step = forms.FloatField(label='Значение шага страйков', required=False)
+    cnt = forms.IntegerField(label='Значение количества страйков', required=False)
 
     def __init__(self, *args, **kwargs):
         choices = kwargs.pop('choices', [])
