@@ -5,8 +5,8 @@ class FileUploadForm(forms.Form):
 
 class OptionSelectionForm(forms.Form):
     option_id = forms.ChoiceField(label='Выберите опцион', choices=[])
-    strike_step = forms.FloatField(label='Шаг страйка', required=False)
     cnt = forms.IntegerField(label='Количество', required=False)
+    strike_step = forms.FloatField(label='Шаг страйка', required=False)
 
     def __init__(self, *args, **kwargs):
         choices = kwargs.pop('choices', [])

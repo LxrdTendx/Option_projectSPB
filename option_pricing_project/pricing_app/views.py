@@ -194,10 +194,11 @@ def index(request):
     file_form = FileUploadForm()
     options_form = None
     graph_data = None
-    selected_data = None  # Для хранения выбранных данных
+    selected_data = None
 
     if request.method == 'POST':
         if 'json_file' in request.FILES:
+            # Загрузка и обработка файла
             file_form = FileUploadForm(request.POST, request.FILES)
             if file_form.is_valid():
                 json_file = request.FILES['json_file']
@@ -211,30 +212,20 @@ def index(request):
                 }, choices=choices)
                 request.session['json_data'] = json_data
                 return render(request, 'index.html', {'file_form': file_form, 'options_form': options_form})
-
         elif 'option_id' in request.POST:
-            json_data = request.session['json_data']
+            # Построение графика с учётом введённых значений
+            json_data = request.session.get('json_data', {})
             selected_id = int(request.POST['option_id'])
+            cnt = int(request.POST.get('cnt', 10))  # Берём значение cnt из POST, с дефолтным значением 10
+            strike_step = float(request.POST.get('strike_step', 1))  # Берём значение strike_step из POST, с дефолтным значением 1
             selected_option = next(item for item in json_data['group'] if item['idOptionGroupParams'] == selected_id)
-            spot_price = selected_option['spot_price']
-            opt_type = selected_option['type']
-            coef = selected_option['coef']
-            r = selected_option['r']
-            external_strikes = selected_option['external_strike']
-            cnt = int(request.POST.get('cnt', selected_option.get('count', 10)))
-            strike_step = float(request.POST.get('strike_step', selected_option.get('step', 1)))
 
-            graph_data, chart_data = create_plot(strike_step, cnt, spot_price, opt_type, coef, r, external_strikes)
-            selected_data = {
-                'spot_price': spot_price,
-                'type': opt_type,
-                'coef': coef,
-                'r': r,
-                'external_strikes': external_strikes,
-                'count': cnt,
-                'step': strike_step
-            }
-            options_form = OptionSelectionForm(request.POST, choices=[(item['idOptionGroupParams'], item['idOptionGroupParams']) for item in json_data['group']])
-            return render(request, 'index.html', {'options_form': options_form, 'graph_data': graph_data, 'chart_data': json.dumps(chart_data), 'selected_data': selected_data, 'file_form': file_form})
+            graph_data, chart_data = create_plot(strike_step, cnt, selected_option['spot_price'], selected_option['type'], selected_option['coef'], selected_option['r'], selected_option['external_strike'])
+            options_form = OptionSelectionForm(initial={
+                'option_id': selected_id,
+                'strike_step': strike_step,
+                'cnt': cnt
+            }, choices=[(item['idOptionGroupParams'], item['idOptionGroupParams']) for item in json_data['group']])
+            return render(request, 'index.html', {'options_form': options_form, 'graph_data': graph_data, 'chart_data': json.dumps(chart_data), 'file_form': file_form})
 
     return render(request, 'index.html', {'file_form': file_form, 'options_form': options_form, 'graph_data': graph_data})

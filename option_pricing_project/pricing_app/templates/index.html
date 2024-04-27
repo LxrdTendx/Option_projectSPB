@@ -39,30 +39,64 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const optionSelect = document.getElementById('id_option_id');
+    const stepInput = document.getElementById('id_strike_step');
+    const countInput = document.getElementById('id_cnt');
+    const form = document.querySelector('form');
+
+    const restoreValues = () => {
+        const savedStep = localStorage.getItem('step');
+        const savedCount = localStorage.getItem('count');
+        if (savedStep) {
+            stepInput.value = savedStep;
+        }
+        if (savedCount) {
+            countInput.value = savedCount;
+        }
+    };
+
     const fetchData = () => {
         const selectedId = optionSelect.value;
-        if (!selectedId) return; // Если ID не выбран, прервать функцию
+        if (!selectedId) return;
 
         fetch(`/get-option-data/${selectedId}/`)
             .then(response => response.json())
             .then(data => {
-                document.getElementById('id_strike_step').value = data.step;
-                document.getElementById('id_cnt').value = data.count;
-                document.getElementById('details').innerHTML = `
-                    <p>Spot Price: ${data.spot_price}</p>
-                    <p>Type: ${data.type}</p>
-                    <p>Polynomial Coefficients: ${data.coef}</p>
-                    <p>R: ${data.r}</p>
-                    <p>External Strikes: ${data.external_strikes.join(', ')}</p>
-                    <p>Count: ${data.count}</p>
-                    <p>Step: ${data.step}</p>
-                `;
+                if (!localStorage.getItem('step')) {
+                    stepInput.value = data.step;
+                }
+                if (!localStorage.getItem('count')) {
+                    countInput.value = data.count;
+                }
+                updateDetails(data);
             })
             .catch(error => console.error('Error fetching data:', error));
     };
 
-    optionSelect.addEventListener('change', fetchData);
-    fetchData(); // Вызов функции при загрузке страницы для текущего выбранного значения
+    const updateDetails = (data) => {
+        document.getElementById('details').innerHTML = `
+            <p>Spot Price: ${data.spot_price}</p>
+            <p>Type: ${data.type}</p>
+            <p>Polynomial Coefficients: ${data.coef}</p>
+            <p>R: ${data.r}</p>
+            <p>External Strikes: ${data.external_strikes.join(', ')}</p>
+            <p>Count: ${countInput.value}</p>
+            <p>Step: ${stepInput.value}</p>
+        `;
+    };
+
+    optionSelect.addEventListener('change', function() {
+        localStorage.removeItem('step');
+        localStorage.removeItem('count');
+        fetchData();
+    });
+
+    form.addEventListener('submit', function() {
+        localStorage.setItem('step', stepInput.value);
+        localStorage.setItem('count', countInput.value);
+    });
+
+    restoreValues();
+    fetchData();
 });
 </script>
 
