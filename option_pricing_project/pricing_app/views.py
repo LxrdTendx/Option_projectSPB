@@ -76,7 +76,88 @@ def create_plot(strike_step, cnt, spot_price, opt_type, coef, r, external_strike
     image_png = buf.getvalue()
     buf.close()
 
-    return base64.b64encode(image_png).decode('utf-8')
+    all_x_values = np.unique(np.concatenate((external_strikes, x)))
+
+    # Подготовка данных для Chart.js
+    chart_data = {
+        'labels': [float(x) for x in x],  # Преобразуем значения NumPy в float
+        'datasets': [
+            {
+                'label': 'Intrinsic Value',
+                'data': [float(value) for value in iv],  # Преобразование данных NumPy в список float
+                'borderColor': 'blue',
+                'fill': False,
+            },
+            {
+                'label': 'Theoretical Price',
+                'data': [float(value) for value in theor],  # Аналогично
+                'borderColor': 'orange',
+                'fill': False,
+            },
+            {
+                'label': 'M',
+                'data': [float(value) for value in m],  # Аналогично
+                'borderColor': 'green',
+                'fill': False,
+            }
+        ]
+    }
+    annotations = []
+
+    # Добавление вертикальных линий
+    for i in range(1, cnt // 2 + 1):
+        annotations.append({
+            'type': 'line',
+            'mode': 'vertical',
+            'scaleID': 'x',
+            'value': spot_price + i * strike_step,
+            'borderColor': 'red',
+            'borderWidth': 2,
+            'borderDash': [6, 6]  # пунктирная линия
+        })
+        annotations.append({
+            'type': 'line',
+            'mode': 'vertical',
+            'scaleID': 'x',
+            'value': spot_price - i * strike_step,
+            'borderColor': 'red',
+            'borderWidth': 2,
+            'borderDash': [6, 6]  # пунктирная линия
+        })
+
+    # Добавление закрашивания
+    annotations.append({
+        'type': 'box',
+        'xScaleID': 'x',
+        'yScaleID': 'y',
+        'xMin': left_bound,
+        'xMax': right_bound,
+        'backgroundColor': 'rgba(255, 99, 132, 0.25)',
+        'borderWidth': 0,
+    })
+    # Добавление вертикальной линии для spot_price
+    annotations.append({
+        'type': 'line',
+        'scaleID': 'x',
+        'value': spot_price,
+        'borderColor': 'red',
+        'borderWidth': 2
+    })
+    for strike in external_strikes:
+        annotations.append({
+            'type': 'line',
+            'scaleID': 'x',
+            'value': strike,
+            'borderColor': 'black',  # Или любой другой цвет для различия
+            'borderWidth': 1,
+            'borderDash': [5, 5]  # Пунктирная линия для отличия
+        })
+
+
+
+    chart_data['annotations'] = annotations
+
+    return base64.b64encode(image_png).decode('utf-8'), chart_data
 
 
 def index(request):
@@ -113,7 +194,7 @@ def index(request):
             cnt = int(request.POST.get('cnt', selected_option.get('count', 10)))
             strike_step = float(request.POST.get('strike_step', selected_option.get('step', 1)))
 
-            graph_data = create_plot(strike_step, cnt, spot_price, opt_type, coef, r, external_strikes)
+            graph_data, chart_data = create_plot(strike_step, cnt, spot_price, opt_type, coef, r, external_strikes)
             selected_data = {
                 'spot_price': spot_price,
                 'type': opt_type,
@@ -124,6 +205,6 @@ def index(request):
                 'step': strike_step
             }
             options_form = OptionSelectionForm(request.POST, choices=[(item['idOptionGroupParams'], item['idOptionGroupParams']) for item in json_data['group']])
-            return render(request, 'index.html', {'options_form': options_form, 'graph_data': graph_data, 'selected_data': selected_data, 'file_form': file_form})
+            return render(request, 'index.html', {'options_form': options_form, 'graph_data': graph_data, 'chart_data': json.dumps(chart_data), 'selected_data': selected_data, 'file_form': file_form})
 
     return render(request, 'index.html', {'file_form': file_form, 'options_form': options_form, 'graph_data': graph_data})

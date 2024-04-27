@@ -19,13 +19,20 @@
     </form>
     {% if graph_data %}
     <div>
-        <img src="data:image/png;base64,{{ graph_data }}" alt="Graph">
+<!--        <img src="data:image/png;base64,{{ graph_data }}" alt="Graph">-->
+        <canvas id="myChart" width="800" height="800"></canvas>
     </div>
+
     {% endif %}
     </div>
 
 
 </body>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.3.1"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.1.1"></script>
+
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const optionSelect = document.getElementById('id_option_id');
@@ -53,6 +60,49 @@ document.addEventListener('DOMContentLoaded', function() {
 
     optionSelect.addEventListener('change', fetchData);
     fetchData(); // Вызов функции при загрузке страницы для текущего выбранного значения
+});
+</script>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var ctx = document.getElementById('myChart').getContext('2d');
+    var chartData = {{ chart_data|safe }};
+    var myChart = new Chart(ctx, {
+        type: 'line',
+        data: chartData,
+        options: {
+            scales: {
+                y: {  // настройки оси Y
+                    beginAtZero: true
+                },
+                x: {  // настройки оси X
+                    type: 'linear',
+                    position: 'bottom'
+                }
+            },
+            plugins: {
+                annotation: {
+                    annotations: chartData.annotations
+                },
+                zoom: {
+                    zoom: {
+                        wheel: {
+                            enabled: true, // Включение зума колесом мыши
+                        },
+                        pinch: {
+                            enabled: true // Включение зума щипком (для сенсорных устройств)
+                        },
+                        mode: 'xy' // Включение зума по обеим осям
+                    },
+                    pan: {
+                        enabled: true, // Включение панорамирования
+                        mode: 'xy' // Панорамирование по обеим осям
+                    }
+                }
+            }
+        }
+    });
 });
 </script>
 
