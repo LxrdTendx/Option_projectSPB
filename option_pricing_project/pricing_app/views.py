@@ -253,18 +253,22 @@ def index(request):
             return response
 
         elif 'download-params' in request.POST:
-            print("Запрос на скачивание параметров")  # Для отладки
+            selected_id = int(request.POST['option_id'])  # ID выбранного опциона
             json_data = request.session.get('json_data', {})
-            # Создаем новый JSON с нужными параметрами
-            params_only_data = {
-                "group": [
-                    {"idOptionGroupParams": option["idOptionGroupParams"], "count": option.get("count"),
-                     "step": option.get("step")}
-                    for option in json_data.get("group", [])
-                ]
-            }
-            response = HttpResponse(json.dumps(params_only_data, indent=4), content_type="application/json")
-            response['Content-Disposition'] = 'attachment; filename="parameters_only.json"'
-            return response
+            selected_option = next((item for item in json_data['group'] if item['idOptionGroupParams'] == selected_id),
+                                   None)
+            if selected_option:
+                params_data = {
+                    "idOptionGroupParams": selected_id,
+                    "count": selected_option.get('count'),
+                    "step": selected_option.get('step')
+                }
+                response = HttpResponse(json.dumps(params_data, indent=4), content_type="application/json")
+                response['Content-Disposition'] = f'attachment; filename="params_option_{selected_id}.json"'
+                return response
+
+            else:
+                response = HttpResponse(json.dumps({"error": "Option not found"}), content_type="application/json")
+                return response
 
     return render(request, 'index.html', {'file_form': file_form, 'options_form': options_form, 'graph_data': graph_data})
