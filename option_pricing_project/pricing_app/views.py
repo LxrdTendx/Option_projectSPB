@@ -244,10 +244,11 @@ def index(request):
             request.session['json_data'] = json_data
             return JsonResponse({'status': 'updated'})
 
+
         elif 'download' in request.POST:
             print("Запрос на скачивание JSON")  # Для отладки
             json_data = request.session.get('json_data', {})
-            response = HttpResponse(json.dumps(json_data), content_type="application/json")
+            response = HttpResponse(json.dumps(json_data, indent=4), content_type="application/json")
             response['Content-Disposition'] = 'attachment; filename="updated_option_data.json"'
             return response
 
