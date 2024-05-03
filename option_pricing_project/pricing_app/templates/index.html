@@ -100,7 +100,7 @@
         height: 3px; /* Высота линии */
         background-color: #ff8261; /* Цвет линии */
     }
-    #select_option, #save, #download{
+    #select_option, #save, #download, #download-params{
         cursor: pointer;
         font-family: "Suisse Intl", sans-serif;
         font-weight: 600;
@@ -138,6 +138,7 @@
                     <div id="details"></div>
                     <button id="save" type="button" onclick="saveData()">Сохранить результаты</button>
                     <button id="download" type="submit" name="download">Скачать JSON</button>
+                    <button id="download-params" type="submit" name="download-params">Скачать параметры</button>
 
                 {% else %}
                     {{ file_form.as_p }}

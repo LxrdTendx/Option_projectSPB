@@ -252,4 +252,19 @@ def index(request):
             response['Content-Disposition'] = 'attachment; filename="updated_option_data.json"'
             return response
 
+        elif 'download-params' in request.POST:
+            print("Запрос на скачивание параметров")  # Для отладки
+            json_data = request.session.get('json_data', {})
+            # Создаем новый JSON с нужными параметрами
+            params_only_data = {
+                "group": [
+                    {"idOptionGroupParams": option["idOptionGroupParams"], "count": option.get("count"),
+                     "step": option.get("step")}
+                    for option in json_data.get("group", [])
+                ]
+            }
+            response = HttpResponse(json.dumps(params_only_data, indent=4), content_type="application/json")
+            response['Content-Disposition'] = 'attachment; filename="parameters_only.json"'
+            return response
+
     return render(request, 'index.html', {'file_form': file_form, 'options_form': options_form, 'graph_data': graph_data})
