@@ -11,7 +11,7 @@ from . import theoretical_prices as tp
 from django.shortcuts import render
 from .forms import FileUploadForm, OptionSelectionForm
 import json
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 
 
 norm_rv = sts.norm(loc=0, scale=1)
@@ -197,9 +197,9 @@ def index(request):
     file_form = FileUploadForm()
     options_form = None
     graph_data = None
-    selected_data = None
 
     if request.method == 'POST':
+        print(request.POST)
         if 'json_file' in request.FILES:
             # Загрузка и обработка файла
             file_form = FileUploadForm(request.POST, request.FILES)
@@ -215,14 +215,12 @@ def index(request):
                 }, choices=choices)
                 request.session['json_data'] = json_data
                 return render(request, 'index.html', {'file_form': file_form, 'options_form': options_form})
-        elif 'option_id' in request.POST:
-            # Построение графика с учётом введённых значений
+        elif 'select_option' in request.POST:
             json_data = request.session.get('json_data', {})
             selected_id = int(request.POST['option_id'])
-            cnt = int(request.POST.get('cnt', 10))  # Берём значение cnt из POST, с дефолтным значением 10
-            strike_step = float(request.POST.get('strike_step', 1))  # Берём значение strike_step из POST, с дефолтным значением 1
+            cnt = int(request.POST.get('cnt', 10))
+            strike_step = float(request.POST.get('strike_step', 1))
             selected_option = next(item for item in json_data['group'] if item['idOptionGroupParams'] == selected_id)
-
             graph_data, chart_data = create_plot(strike_step, cnt, selected_option['spot_price'], selected_option['type'], selected_option['coef'], selected_option['r'], selected_option['external_strike'])
             options_form = OptionSelectionForm(initial={
                 'option_id': selected_id,
@@ -230,5 +228,27 @@ def index(request):
                 'cnt': cnt
             }, choices=[(item['idOptionGroupParams'], item['idOptionGroupParams']) for item in json_data['group']])
             return render(request, 'index.html', {'options_form': options_form, 'graph_data': graph_data, 'chart_data': json.dumps(chart_data), 'file_form': file_form})
+
+        elif 'save' in request.POST:
+            json_data = request.session.get('json_data', {})
+            selected_id = int(request.POST['option_id'])
+            cnt = int(request.POST['cnt'])
+            strike_step = float(request.POST['strike_step'])
+
+            for option in json_data['group']:
+                if option['idOptionGroupParams'] == selected_id:
+                    option['count'] = cnt
+                    option['step'] = strike_step
+                    break
+
+            request.session['json_data'] = json_data
+            return JsonResponse({'status': 'updated'})
+
+        elif 'download' in request.POST:
+            print("Запрос на скачивание JSON")  # Для отладки
+            json_data = request.session.get('json_data', {})
+            response = HttpResponse(json.dumps(json_data), content_type="application/json")
+            response['Content-Disposition'] = 'attachment; filename="updated_option_data.json"'
+            return response
 
     return render(request, 'index.html', {'file_form': file_form, 'options_form': options_form, 'graph_data': graph_data})

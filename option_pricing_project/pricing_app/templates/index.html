@@ -100,7 +100,7 @@
         height: 3px; /* Высота линии */
         background-color: #ff8261; /* Цвет линии */
     }
-    #select_option{
+    #select_option, #save, #download{
         cursor: pointer;
         font-family: "Suisse Intl", sans-serif;
         font-weight: 600;
@@ -127,17 +127,25 @@
         <h1>Визуализатор для создания опционов</h1>
         <div style="display: flex; margin-left: 130px">
            <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-            {% if not options_form %}
-                {{ file_form.as_p }}
-                <button type="submit" name="upload">Загрузить файл</button>
-            {% else %}
-                {{ options_form.as_p }}
-                <button id="select_option" type="submit" name="select_option">Построить график</button>
-                <div class="data">Загруженные данные</div>
-                <div id="details"></div>
+                {% csrf_token %}
+                {% if options_form %}
+                    {{ options_form.as_p }}
+                    <button id="select_option" type="submit" name="select_option">Построить график</button>
+                    <button id="save" type="button" onclick="saveData()">Сохранить</button>
+                    <button id="download" type="submit" name="download">Скачать JSON</button>
+                    <div class="data">Загруженные данные</div>
+                    <div id="details"></div>
+
+                {% else %}
+                    {{ file_form.as_p }}
+                    <button type="submit" name="upload">Загрузить файл</button>
+                {% endif %}
+            </form>
+            {% if message %}
+                <div class="alert alert-success">
+                    {{ message }}
+                </div>
             {% endif %}
-        </form>
         {% if graph_data %}
         <div>
             <div class="data" style="width: 75px">График</div>
@@ -156,6 +164,24 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-adapter-moment/1.0.0/chartjs-adapter-moment.min.js"></script>
 
 
+
+<script>
+function saveData() {
+    const formData = new FormData(document.querySelector('form')); // Подразумевается, что форма одна на странице
+    formData.append('save', ''); // Указываем, что действие - сохранение
+
+    fetch(window.location.href, { // Отправка данных на тот же URL, что и текущая страница
+        method: 'POST',
+        body: formData
+    }).then(response => response.json())
+      .then(data => {
+        alert(`Статус: ${data.status}`); // Вывод статуса операции
+      }).catch(error => {
+        console.error('Ошибка:', error);
+        alert('Произошла ошибка при сохранении.');
+      });
+}
+</script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const optionSelect = document.getElementById('id_option_id');
